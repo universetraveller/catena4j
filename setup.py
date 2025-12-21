@@ -15,18 +15,18 @@ import stat
 
 def build_java_toolkit():
     """Build the Java toolkit JAR file using Gradle wrapper."""
-    c4j_home = Path(getcwd()).resolve()
+    c4j_home = Path(getcwd()).resolve() / 'catena4j'
     toolkit = c4j_home / 'toolkit'
 
     is_windows = platform.system().lower().startswith("win")
     gradlew = toolkit / 'gradlew'
 
     if is_windows:
-        gradle_cmd = root / "gradlew.bat"
+        gradlew = root / "gradlew.bat"
     elif gradlew.exists():
-        mode = gradle_cmd.stat().st_mode
+        mode = gradlew.stat().st_mode
         if not (mode & stat.S_IXUSR):
-            gradle_cmd.chmod(mode | stat.S_IXUSR)
+            gradlew.chmod(mode | stat.S_IXUSR)
     
     # Check if Gradle wrapper exists
     if not gradlew.exists():
@@ -47,11 +47,7 @@ def build_java_toolkit():
         result = subprocess.run(gradle_cmd, cwd=str(toolkit), check=True, 
                                 capture_output=True, text=True)
         print("Java toolkit built successfully!")
-        if result.stdout:
-            # Print only summary lines
-            for line in result.stdout.split('\n'):
-                if 'BUILD SUCCESSFUL' in line or 'actionable task' in line:
-                    print(line)
+        print(result.stdout)
     except subprocess.CalledProcessError as e:
         print(f"Warning: Java toolkit build failed with exit code {e.returncode}")
         if e.stderr:
