@@ -5,7 +5,10 @@ import sys
 from catena4j.bootstrap import register_entry_point
 from catena4j.util import run_command_task, auto_task_print
 from catena4j.env import get_system_context
-from setup import build_java_toolkit
+
+def build_java_toolkit(c4j_home):
+    toolkit = c4j_home / 'toolkit'
+    run_command_task(['./gradlew', 'clean', 'build', '--no-daemon'], str(toolkit))
 
 def generate_startup_script(file_name, python, c4j_home):
     SCRIPT = f'''#! {python}
@@ -65,7 +68,7 @@ def main():
                         default=sys.executable)
 
     args = parser.parse_args()
-    auto_task_print('Build the toolkit', build_java_toolkit)
+    auto_task_print('Build the toolkit', build_java_toolkit, (c4j_home,))
     auto_task_print(f'Generate the startup script to {c4j_home / args.name}',
                     generate_startup_script,
                     (args.name, args.python, c4j_home))
