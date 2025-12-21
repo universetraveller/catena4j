@@ -164,6 +164,6 @@ def check_vid(project, bid, cid, context):
     if bid in bugs and cid in bugs[bid]:
         return
 
-    path = Path(context.c4j_home, 'projects', 'bugs-registry.csv')
+    path = Path(context.c4j_home, context.c4j_rel_projects, project,'bugs-registry.csv')
     raise Catena4JError(f'Error: {project}-{bid}-{cid} is not an active bug id; '
                         f'full list could be found at {path}')

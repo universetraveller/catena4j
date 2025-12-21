@@ -6,32 +6,16 @@ from catena4j.bootstrap import register_entry_point
 from catena4j.util import run_command_task, auto_task_print
 from catena4j.env import get_system_context
 
-def build_toolkit(c4j_home, d4j_home):
+def build_java_toolkit(c4j_home):
     toolkit = c4j_home / 'toolkit'
-    target = toolkit / 'target'
-    if not target.is_dir():
-        target.mkdir(parents=True)
-
-    javac_base = ['javac', '-cp', f'{d4j_home}/major/lib/*', '-sourcepath', './src', '-d', './target']
-
-    src = []
-    for root, _, files in os.walk(f'{toolkit}/src/io/github/universetraveller/'):
-        for file in files:
-            if file.endswith('.java'):
-                src.append(os.path.join(root, file))
-
-    cmd = javac_base + src
-    run_command_task(cmd, str(toolkit))
-
-    jar_cmd = ['jar', 'cf', './target/toolkit.jar', '-C', './target', '.']
-    run_command_task(jar_cmd, str(toolkit))
+    run_command_task(['./gradlew', 'clean', 'build', '--no-daemon'], str(toolkit))
 
 def generate_startup_script(file_name, python, c4j_home):
     SCRIPT = f'''#! {python}
 from catena4j.bootstrap import system
 system.start
 '''
-    with open(c4j_home / file_name, 'w', encoding=sys.getdefaultencoding()) as f:
+    with open(c4j_home / '..' / file_name, 'w', encoding=sys.getdefaultencoding()) as f:
         f.write(SCRIPT)
 
 def add_path(c4j_home):
@@ -46,7 +30,8 @@ def add_path(c4j_home):
     else:
         rc_file = home / ".profile"
 
-    export_line = f'export PATH=$PATH:{c4j_home}'
+    target_path = c4j_home / '..'
+    export_line = f'export PATH=$PATH:{target_path}'
 
     # Avoid duplicate entry
     if rc_file.exists():
@@ -56,8 +41,8 @@ def add_path(c4j_home):
 
     current_path_entries = os.environ.get("PATH", "").split(os.pathsep)
 
-    if str(c4j_home) in current_path_entries:
-        return f'Found {c4j_home} in PATH so it is not added to {rc_file}'
+    if str(target_path) in current_path_entries:
+        return f'Found {target_path} in PATH so it is not added to {rc_file}'
 
     with open(rc_file, "a") as f:
         f.write(f'\n# Added by catena4j setup script\n{export_line}\n')
@@ -84,8 +69,8 @@ def main():
                         default=sys.executable)
 
     args = parser.parse_args()
-    auto_task_print('Build the toolkit', build_toolkit, (c4j_home, context.d4j_home))
-    auto_task_print(f'Generate the startup script to {c4j_home / args.name}',
+    auto_task_print('Build the toolkit', build_java_toolkit, (c4j_home,))
+    auto_task_print(f'Generate the startup script to {c4j_home / '..' / args.name}',
                     generate_startup_script,
                     (args.name, args.python, c4j_home))
     output = auto_task_print('Add executable to PATH', add_path, (c4j_home,))
