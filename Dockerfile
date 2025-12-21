@@ -23,12 +23,11 @@ RUN git clone https://github.com/rjust/defects4j.git defects4j && \
 	cpanm --installdeps . && \
 	./init.sh
 
-# Install CatenaD4J
-WORKDIR /root
-RUN git clone https://github.com/universetraveller/CatenaD4J.git && \
-	cd /root/CatenaD4J/toolkit && \
-	bash compile.sh && \
+# Install catena4j
+RUN git clone https://github.com/universetraveller/catena4j.git && \
+	cd /root/catena4j/toolkit && \
+	./gradlew clean build --no-daemon && \
 	cd /root
 
 # Configure the environment variable PATH
-ENV PATH="/root/defects4j/framework/bin:${PATH}:/root/CatenaD4J"
+ENV PATH="/root/defects4j/framework/bin:${PATH}:/root/catena4j"

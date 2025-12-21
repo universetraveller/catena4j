@@ -5,26 +5,7 @@ import sys
 from catena4j.bootstrap import register_entry_point
 from catena4j.util import run_command_task, auto_task_print
 from catena4j.env import get_system_context
-
-def build_toolkit(c4j_home, d4j_home):
-    toolkit = c4j_home / 'toolkit'
-    target = toolkit / 'target'
-    if not target.is_dir():
-        target.mkdir(parents=True)
-
-    javac_base = ['javac', '-cp', f'{d4j_home}/major/lib/*', '-sourcepath', './src', '-d', './target']
-
-    src = []
-    for root, _, files in os.walk(f'{toolkit}/src/io/github/universetraveller/'):
-        for file in files:
-            if file.endswith('.java'):
-                src.append(os.path.join(root, file))
-
-    cmd = javac_base + src
-    run_command_task(cmd, str(toolkit))
-
-    jar_cmd = ['jar', 'cf', './target/toolkit.jar', '-C', './target', '.']
-    run_command_task(jar_cmd, str(toolkit))
+from setup import build_java_toolkit
 
 def generate_startup_script(file_name, python, c4j_home):
     SCRIPT = f'''#! {python}
@@ -84,7 +65,7 @@ def main():
                         default=sys.executable)
 
     args = parser.parse_args()
-    auto_task_print('Build the toolkit', build_toolkit, (c4j_home, context.d4j_home))
+    auto_task_print('Build the toolkit', build_java_toolkit)
     auto_task_print(f'Generate the startup script to {c4j_home / args.name}',
                     generate_startup_script,
                     (args.name, args.python, c4j_home))
