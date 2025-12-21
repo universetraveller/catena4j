@@ -7,7 +7,7 @@ from typing import Callable
 from .util import get_constant_class
 from pathlib import Path
 
-_c4j_home = Path(__file__).parent.parent.absolute()
+_c4j_home = Path(__file__).parent.absolute()
 
 _config = None
 _config_mapping: dict = None

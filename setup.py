@@ -22,7 +22,7 @@ def build_java_toolkit():
     gradlew = toolkit / 'gradlew'
 
     if is_windows:
-        gradlew = root / "gradlew.bat"
+        gradlew = toolkit / "gradlew.bat"
     elif gradlew.exists():
         mode = gradlew.stat().st_mode
         if not (mode & stat.S_IXUSR):
