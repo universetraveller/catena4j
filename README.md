@@ -1,24 +1,5 @@
 # catena4j v2.0.0
 
-## Table of Contents
-- [Introduction](#introduction)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Available Commands](#available-commands)
-- [Command Reference](#command-reference)
-  - [checkout](#checkout)
-  - [export](#export)
-  - [test](#test)
-  - [compile](#compile)
-  - [clean](#clean)
-  - [reset](#reset)
-  - [pids](#pids)
-  - [bids](#bids)
-  - [cids](#cids)
-- [Configuration](#configuration)
-- [Examples](#examples)
-- [Comparison with Defects4J](#comparison-with-defects4j)
-
 ## Introduction
 
 Catena4j is a high-performance Python implementation of Defects4J and CatenaD4J with a native API.
@@ -50,6 +31,16 @@ Bugs are referenced using the format: `<bug_id><b/f><cid>`
 - `bug_id`: Original Defects4J bug number
 - `b/f`: Buggy or fixed version
 - `cid`: CatenaD4J catena identifier
+
+## Table of Contents
+- [Introduction](#introduction)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Available Commands](#available-commands)
+- [Command Reference](#command-reference)
+- [Configuration](#configuration)
+- [Examples](#examples)
+- [Comparison with Defects4J](#comparison-with-defects4j)
 
 ## Installation
 
