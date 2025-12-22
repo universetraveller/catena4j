@@ -152,6 +152,12 @@ def get_toolkit_command(context: Namespace, *args, basedir=None):
     ant_cp = str(Path(d4j_home, context.d4j_rel_ant_lib))
     toolkit_cp = str(Path(c4j_home, context.c4j_rel_toolkit_lib))
     d4j_props = str(Path(c4j_home, context.c4j_rel_d4j_properties))
+    # TODO [JDK-8] compatibility setup for JDK 8 and expected to be removed in the future
+    jdk_home = context.jdk_home
+    if not jdk_home:
+        raise Catena4JError('JAVA_HOME is not set and JDK could not be found')
+    ant_cp = f'{ant_cp}:{str(Path(jdk_home, "lib", "tools.jar"))}'
+    # END [JDK-8]
     cmd = ['java', '-cp', f':{ant_cp}:{toolkit_cp}', f'-Dbasedir={basedir}',
            f'-Dd4j.home={d4j_home}', f'-Dc4j.d4j.properties={d4j_props}']
     cmd.extend(args)

@@ -47,6 +47,14 @@ def _initialize_env():
         'os_env': os_env
     }
 
+    # TODO [JDK-8] compatibility setup for JDK 8 and expected to be removed in the future
+    jdk_home = os_env.get('JAVA_HOME') or util.search_cache(c4j_home / env._config.rel_cache_dir / 'jdk_home',
+                                                            lambda p: Path(p, 'lib', 'tools.jar').is_file(),
+                                                            util.find_path,
+                                                            ('javac', 1))
+    _env['jdk_home'] = jdk_home
+    # END [JDK-8]
+
     return _env
 
 register_env_constructor(_initialize_env)
