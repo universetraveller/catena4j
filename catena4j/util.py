@@ -359,6 +359,26 @@ class TaskPrinter:
         yield self.adapt_done()
         yield self.adapt_start()
 
+class AutoTaskPrinter:
+    '''
+        A context manager to automatically print task status
+    '''
+    def __init__(self, title, reraise=True, **printer_args):
+        self.printer = TaskPrinter(title, **printer_args)
+        self.reraise = reraise
+
+    def __enter__(self):
+        self.printer.start()
+        return self.printer
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type is None:
+            self.printer.done()
+        else:
+            self.printer.fail()
+
+        return not self.reraise
+
 def auto_task_print(title, f, args=(), kwargs={}, reraise=True, **printer_args):
     printer = TaskPrinter(title, **printer_args)
     try:
