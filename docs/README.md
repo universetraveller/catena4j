@@ -1,10 +1,8 @@
-# CatenaD4J User Guide
+# catena4j v2.0.0
 
 ## Table of Contents
 - [Introduction](#introduction)
 - [Installation](#installation)
-  - [Docker Installation](#docker-installation)
-  - [Manual Installation](#manual-installation)
 - [Quick Start](#quick-start)
 - [Available Commands](#available-commands)
 - [Command Reference](#command-reference)
@@ -19,17 +17,25 @@
   - [cids](#cids)
 - [Configuration](#configuration)
 - [Examples](#examples)
-- [Troubleshooting](#troubleshooting)
+- [Comparison with Defects4J](#comparison-with-defects4j)
 
 ## Introduction
 
+Catena4j is a high-performance Python implementation of Defects4J and CatenaD4J with a native API.
+
+It reimplemented most defects4j commands using Python and Java for better performance, while providing API for programming access to the dataset.
+
 CatenaD4J (c4j) is a dataset for evaluating automated program repair techniques on indivisible multi-hunk bugs. A "catena bug" consists of multiple interdependent code hunks that must all be fixed together to resolve the bug.
+
+This module contains bugs from both Defects4j and CatenaD4J.
+
+> [!NOTE] The defects4j version currently implemented is v2.1.0 and plan to upgrade to v3.0.0 in next version. In this case, the JDK requirement will also change to JDK 11 (current JDK 8).
 
 ### Key Features
 - **367 bugs** across 6 projects from Defects4J
 - **Minimal, isolated bugs** with single-assertion failing tests
 - **Indivisible multi-hunk** structure requiring coordinated fixes
-- **Compatible with Defects4J** as a plugin/extension
+- **Compatible with Defects4J** by implementing most defects4j commands
 - **Extensible architecture** supporting custom commands and loaders
 
 ### Bug Structure
@@ -51,16 +57,40 @@ Bugs are referenced using the format: `<bug_id><b/f><cid>`
 - **Defects4J v2.0**: See [defects4j repository](https://github.com/rjust/defects4j.git)
 - **Java 1.8 (JDK 8)**: See [OpenJDK 8](https://openjdk.org/projects/jdk8/)
 
+### Package Manager (Recommended)
+
+The easiest way to install this repository is using the python package manager such as `uv` and `pip`.
+
+This operation will install this repository as a python library while providing a console script `catena4j`.
+
+From source:
+
+```bash
+pip install .
+```
+
+or from the built package:
+
+```bash
+pip install catena4j
+```
+
+And test the installation:
+```bash
+catena4j pids
+```
+
+
 ### Docker Installation
 
-The easiest way to get started is using Docker.
+Another easy way to get started is using Docker.
 
 1. **Install Docker** (if not already installed):
    - Follow instructions at [Install Docker Engine](https://docs.docker.com/engine/install/)
 
 2. **Download the Dockerfile**:
    ```bash
-   curl https://raw.githubusercontent.com/universetraveller/CatenaD4J/main/Dockerfile -o Dockerfile
+   curl https://raw.githubusercontent.com/universetraveller/catena4j/main/Dockerfile -o Dockerfile
    ```
 
 3. **Build the Docker image**:
@@ -82,50 +112,45 @@ For native installation without Docker:
 
 2. **Clone the Repository**:
    ```bash
-   git clone https://github.com/universetraveller/CatenaD4J.git
-   cd CatenaD4J
+   git clone https://github.com/universetraveller/catena4j.git
+   cd catena4j
    ```
 
 3. **Build the Java Toolkit**:
    ```bash
    cd toolkit
-   bash compile.sh
+   ./gradlew clean build
    cd ..
    ```
 
-4. **Install Using setup.py** (recommended):
+4. **Using setup_unix_user.py (Optional)**
+   For custom installation with a user-specified startup script:
+
+   The repository contains an example startup script `c4j` but this can also be generated using
+   `setup_unix_user.py` if you don't want to install it as a library or to python's site-packages.
+
    ```bash
-   python3 setup.py install
+   python3 setup_unix_user.py -n <script_name> -p <python_path>
    ```
-   
-   Or use the provided startup script:
-   
-5. **Add to PATH** (if using the startup script):
+
+   Options:
+   - `-n, --name`: Name of the startup script to generate (default: `c4j`)
+   - `-p, --python`: Path to Python interpreter (default: current Python executable)
+
+   This will:
+   1. Build the Java toolkit
+   2. Generate a startup script with your chosen name
+   3. Add the script to your PATH (in `.bashrc`, `.zshrc`, or `.profile`)
+
+5. **Add to PATH** (when using the provided startup script `c4j`):
    ```bash
-   export PATH=$PATH:/path/to/CatenaD4J
+   export PATH=$PATH:/path/to/catena4j
    ```
 
 6. **Verify Installation**:
    ```bash
-   catena4j pids
+   c4j pids
    ```
-
-### Using setup_unix_user.py
-
-For custom installation with a user-specified startup script:
-
-```bash
-python3 setup_unix_user.py -n <script_name> -p <python_path>
-```
-
-Options:
-- `-n, --name`: Name of the startup script to generate (default: `c4j`)
-- `-p, --python`: Path to Python interpreter (default: current Python executable)
-
-This will:
-1. Build the Java toolkit
-2. Generate a startup script with your chosen name
-3. Add the script to your PATH (in `.bashrc`, `.zshrc`, or `.profile`)
 
 ## Quick Start
 
@@ -156,7 +181,7 @@ This will:
 
 6. **Run tests**:
    ```bash
-   catena4j test -w ./buggy_chart --trigger
+   catena4j test -w ./buggy_chart
    ```
 
 7. **Export properties**:
@@ -191,10 +216,10 @@ catena4j checkout -p <project> -v <version_id> -w <work_dir> [--full-history]
 
 **Options**:
 - `-p <project>`: Project name (required)
-- `-v <version_id>`: Version identifier in format `<bid><b/f><cid>` (required)
+- `-v <version_id>`: Version identifier in format `<bid><b/f>[<cid>]` (required)
   - `bid`: Bug ID (integer)
   - `b/f`: 'b' for buggy, 'f' for fixed
-  - `cid`: Catena ID (integer)
+  - `cid`: Catena ID (optional, integer)
 - `-w <work_dir>`: Working directory path (required)
 - `--full-history`: Generate additional commits (post-fix, pre-fix revisions)
 
@@ -203,8 +228,8 @@ catena4j checkout -p <project> -v <version_id> -w <work_dir> [--full-history]
 # Check out buggy version of Chart bug 15, catena ID 1
 catena4j checkout -p Chart -v 15b1 -w ./chart_15b1
 
-# Check out fixed version
-catena4j checkout -p Chart -v 15f1 -w ./chart_15f1
+# Check out fixed version of Chart bug 15 from Defects4j
+catena4j checkout -p Chart -v 15f -w ./chart_15f
 
 # Check out with full history
 catena4j checkout -p Chart -v 15b1 -w ./chart_15b1 --full-history
@@ -268,7 +293,7 @@ catena4j test [-w <work_dir>] [-c] [-l] [-i <level>] [-t <test> | -r | --trigger
 
 **Options**:
 - `-w <work_dir>`: Working directory (default: current directory)
-- `-c, --compile`: Compile before running tests
+- `-c, --compile`: Compile before running tests (will not compile by default)
 - `-l, --list`: List tests without executing them (output to `<work_dir>/all_tests`)
 - `-i, --isolation <level>`: Test isolation level (default: from config)
   - `1`: Reused isolated classloader (fastest)
@@ -278,6 +303,20 @@ catena4j test [-w <work_dir>] [-c] [-l] [-i <level>] [-t <test> | -r | --trigger
 - `-r`: Run only relevant tests
 - `--trigger`: Run only trigger tests
 - `-a`: Collect failed assertions without breaking (experimental)
+
+**Isolation Levels**:
+
+- Level 1 uses a single isolated classloader for the whole test process
+   This level can produce identical test results for most test cases (98%+) compared with Defect4J and run fastest.
+
+   For few bugs that contain order sensitive test cases this level can produce different results compared with defects4j.
+   However, the results will not change in each run.
+
+- Level 2 uses a single isolated classloader for each test class
+   This level can produce more identical test results (99%+, except few test cases depend on classloader type) than level 1.
+
+- Level 3 uses Ant's classloader directly
+   This level simulates what defects4j's test command does so it can produce same test results compared with defects4j.
 
 **Examples**:
 ```bash
@@ -327,7 +366,7 @@ catena4j compile -w ./chart_15b1 --verbose
 
 ### clean
 
-Clean the build output directory.
+Clean the build output directory (run ant's clean task).
 
 **Syntax**:
 ```bash
@@ -346,6 +385,8 @@ catena4j clean -w ./chart_15b1
 ### reset
 
 Reset all unstaged modifications in a working directory.
+
+It run `git checkout <commit>` and `git clean -xdf` internally.
 
 **Syntax**:
 ```bash
@@ -455,7 +496,7 @@ CatenaD4J configuration is defined in `catena4j/config.py`. Key settings include
 - `c4j_tag`: Tag format for CatenaD4J versions
 - `d4j_tag`: Tag format for Defects4J versions
 
-To customize configuration, modify `catena4j/config.py` before installation or use the extensibility APIs to override settings programmatically.
+To customize configuration, modify `catena4j/config.py` before installation or use the extensibility APIs or user_setup module to override settings programmatically.
 
 ## Examples
 
@@ -487,28 +528,6 @@ catena4j export -p classes.modified -w . -o modified_classes.txt
 catena4j reset -w .
 ```
 
-### Batch Processing Multiple Bugs
-
-```bash
-#!/bin/bash
-
-PROJECT="Chart"
-BUGS=$(catena4j bids -p $PROJECT --with-cids)
-
-for BID in $BUGS; do
-  CIDS=$(catena4j cids -p $PROJECT -b $BID)
-  for CID in $CIDS; do
-    VERSION="${BID}b${CID}"
-    WORKDIR="./workspace/${PROJECT}_${VERSION}"
-    
-    echo "Processing $PROJECT bug $VERSION"
-    catena4j checkout -p $PROJECT -v $VERSION -w $WORKDIR
-    catena4j compile -w $WORKDIR
-    catena4j test -w $WORKDIR --trigger > "${WORKDIR}/test_results.txt"
-  done
-done
-```
-
 ### Using Cache for Performance
 
 ```bash
@@ -522,74 +541,63 @@ catena4j export -p tests.all -w ./chart_15b1 --from-cache
 catena4j export -p tests.all -w ./chart_15b1 --update-cache
 ```
 
-## Troubleshooting
+## Comparison with Defects4J
+This implementation optimizes runtime performance by reducing unnecessary operations, such as refining project build files and reimplementing commands.
+It also provides an API for users, whereas Defects4J can only be executed as a command-line tool.
 
-### Common Issues
+When checking out all 835 projects on the same machine, Defects4J takes 32:57, while this implementation completes the task in 05:48.
+To ensure consistency, the outputs produced by Defects4J and Catena4J are compared and verified to be identical.
 
-**Issue**: `catena4j: command not found`
-- **Solution**: Ensure CatenaD4J is in your PATH or use the full path to the script
-  ```bash
-  export PATH=$PATH:/path/to/CatenaD4J
-  ```
+When exporting all properties in parallel, Defects4J takes 25 minutes, whereas this implementation takes only 5 minutes.
+Even when this implementation is run sequentially, it completes in 19:14.
 
-**Issue**: Python encoding errors
-- **Solution**: Set the encoding environment variable:
-  ```bash
-  export JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8
-  ```
+For testing, this implementation can achieve up to a 10× speedup.
+However, there is a concern that test isolation is not well designed in some of these legacy projects, so Ant-based testing is still required.
+That said, the current implementation produces identical test results for most test cases.
 
-**Issue**: Defects4J not found
-- **Solution**: Install Defects4J v2.0 and ensure it's in your PATH
-  ```bash
-  which defects4j  # Should show the path
-  ```
+The average benchmark runtime for testing each project is summarized below:
 
-**Issue**: Java compilation errors
-- **Solution**: Ensure Java 1.8 (JDK 8) is installed and active
-  ```bash
-  java -version  # Should show 1.8.x
-  ```
+Ant represents using the Ant junit task (level 3), while HashMap and LinkedHashMap are two implementation of level 1, and IsolatedClassLoader correspond to the implementation of level 2.
 
-**Issue**: Checkout fails for a specific bug
-- **Solution**: Check if the bug ID and catena ID combination is valid
-  ```bash
-  catena4j cids -p <project> -b <bug_id>
-  ```
+| Project         | Ant    | HashMap | LinkedHashMap | IsolatedClassLoader |
+| --------------- | ------ | ------- | ------------- | ------------------- |
+| JxPath          | 2.049  | 1.010   | 1.076         | 1.953               |
+| Collections     | 12.892 | 11.939  | 12.510        | 12.818              |
+| Csv             | 1.138  | 1.064   | 1.033         | 1.103               |
+| JacksonXml      | 6.437  | 0.728   | 0.696         | 4.817               |
+| Lang            | 8.787  | 8.630   | 8.463         | 8.764               |
+| Jsoup           | 1.402  | 0.779   | 0.785         | 1.228               |
+| Compress        | 3.560  | 3.152   | 3.094         | 3.480               |
+| JacksonCore     | 3.518  | 2.749   | 2.651         | 3.390               |
+| Mockito         | 15.842 | 4.535   | 4.444         | 13.223              |
+| Math            | 18.602 | 12.868  | 14.978        | 18.259              |
+| JacksonDatabind | 30.840 | 5.174   | 4.830         | 23.560              |
+| Closure         | 30.477 | 6.921   | 6.694         | 27.873              |
+| Codec           | 1.769  | 1.757   | 1.768         | 1.717               |
+| Time            | 4.610  | 1.859   | 1.786         | 3.828               |
+| Chart           | 4.967  | 2.220   | 2.123         | 4.492               |
+| Cli             | 0.418  | 0.410   | 0.345         | 0.410               |
+| Gson            | 1.684  | 0.580   | 0.572         | 1.291               |
 
-**Issue**: Tests fail unexpectedly
-- **Solution**: Try different isolation levels
-  ```bash
-  catena4j test -w ./workdir -i 3  # Use highest isolation
-  ```
-
-### Known Issues
-
-**Flaky Bugs in Mockito**: Some bugs in the Mockito project produce varying test results in different environments (sequential vs. parallel execution, high CPU usage). It's recommended to avoid Mockito project bugs until this is resolved.
+The current implementation still requires a Defects4J installation to access certain metadata files and downloaded repositories.
+In future work, it may be possible to eliminate the need to install Defects4J entirely.
 
 ### Getting Help
 
-- **Issues**: Report bugs at [GitHub Issues](https://github.com/universetraveller/CatenaD4J/issues)
+- **Issues**: Report bugs at [GitHub Issues](https://github.com/universetraveller/catena4j/issues)
 - **Documentation**: See [ARCHITECTURE.md](ARCHITECTURE.md) for system design
 - **API Reference**: See [API.md](API.md) for programmatic usage
 - **Defects4J Documentation**: [Defects4J Repository](https://github.com/rjust/defects4j)
 
-### Environment Variables
-
-CatenaD4J respects the following environment variables:
-- `TZ`: Timezone (default: `America/Los_Angeles`)
-- `PATH`: Must include Defects4J and CatenaD4J
-- `JAVA_TOOL_OPTIONS`: Java options (recommended: `-Dfile.encoding=UTF8`)
-- `GRADLE_LOCAL_HOME_DIR`: Gradle home for projects using Gradle
-
 ## Next Steps
 
 - **Understand the Architecture**: Read [ARCHITECTURE.md](ARCHITECTURE.md)
-- **API Programming**: See [API.md](API.md) for using CatenaD4J as a library
+- **API Programming**: See [API.md](API.md) for using catena4j as a library
 - **Extend CatenaD4J**: Learn about loaders and commands in the component guides
 - **Reproduce Experiments**: Follow instructions in `scripts/README.md`
 
 ## References
 
 - **Paper**: Q. Xin, H. Wu, J. Tang, X. Liu, S. Reiss and J. Xuan. "Detecting, Creating, Evaluating, and Understanding Indivisible Multi-Hunk Bugs." FSE 2024.
-- **Repository**: [https://github.com/universetraveller/CatenaD4J](https://github.com/universetraveller/CatenaD4J)
+- **CatenaD4J**: [https://github.com/universetraveller/CatenaD4J](https://github.com/universetraveller/CatenaD4J)
 - **Defects4J**: [https://github.com/rjust/defects4j](https://github.com/rjust/defects4j)

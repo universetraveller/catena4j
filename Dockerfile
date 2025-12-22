@@ -25,6 +25,8 @@ RUN git clone https://github.com/rjust/defects4j.git defects4j && \
 
 # Install catena4j
 RUN git clone https://github.com/universetraveller/catena4j.git && \
+	cd catena4j && \
+	cp c4j /usr/local/bin/catena4j && \
 	cd /root/catena4j/toolkit && \
 	./gradlew clean build --no-daemon && \
 	cd /root
