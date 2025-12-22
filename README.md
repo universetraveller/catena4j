@@ -29,7 +29,8 @@ CatenaD4J (c4j) is a dataset for evaluating automated program repair techniques 
 
 This module contains bugs from both Defects4j and CatenaD4J.
 
-> [!NOTE] The defects4j version currently implemented is v2.1.0 and plan to upgrade to v3.0.0 in next version. In this case, the JDK requirement will also change to JDK 11 (current JDK 8).
+> [!NOTE]
+> The defects4j version currently implemented is v2.1.0 and plan to upgrade to v3.0.0 in next version. In this case, the JDK requirement will also change to JDK 11 (current JDK 8).
 
 ### Key Features
 - **367 bugs** across 6 projects from Defects4J
@@ -75,7 +76,7 @@ or from the built package:
 pip install catena4j
 ```
 
-And test the installation:
+Test the installation:
 ```bash
 catena4j pids
 ```
@@ -557,7 +558,7 @@ That said, the current implementation produces identical test results for most t
 
 The average benchmark runtime for testing each project is summarized below:
 
-Ant represents using the Ant junit task (level 3), while HashMap and LinkedHashMap are two implementation of level 1, and IsolatedClassLoader correspond to the implementation of level 2.
+Ant represents using the Ant junit task (level 3), while HashMap and LinkedHashMap are two implementations of level 1, and IsolatedClassLoader correspond to the implementation of level 2.
 
 | Project         | Ant    | HashMap | LinkedHashMap | IsolatedClassLoader |
 | --------------- | ------ | ------- | ------------- | ------------------- |
