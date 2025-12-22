@@ -13,12 +13,12 @@
 
 ## Introduction
 
-CatenaD4J is designed as a modular, extensible dataset infrastructure with a Python frontend and Java performance backend. The architecture emphasizes:
+The catena4j system is designed as a modular, extensible dataset infrastructure with a Python frontend and Java performance backend. The architecture emphasizes:
 
 - **Modularity**: Components are loosely coupled and independently replaceable
 - **Extensibility**: Custom commands and loaders can be added without modifying core code
 - **Performance**: Java toolkit handles computationally intensive operations
-- **Compatibility**: Works as a Defects4J plugin while maintaining independent functionality
+- **Compatibility**: Works as a Defects4J alternative while maintaining independent functionality
 
 ## System Architecture
 
@@ -26,18 +26,18 @@ CatenaD4J is designed as a modular, extensible dataset infrastructure with a Pyt
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        User Interface                        │
-│                    (CLI / Python API)                        │
+│                        User Interface                       │
+│                    (CLI / Python API)                       │
 └────────────────────────┬────────────────────────────────────┘
                          │
 ┌────────────────────────▼────────────────────────────────────┐
-│                   Bootstrap System                           │
-│  • System Initialization   • Configuration Loading           │
-│  • Component Registration  • Entry Point Management          │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-        ┌────────────────┼────────────────┐
-        │                │                │
+│                   Bootstrap System                          │
+│  • System Initialization   • Configuration Loading          │
+│  • Component Registration  • Entry Point Management         │
+└───────────────────────┬─────────────────────────────────────┘
+                        │
+        ┌───────────────┼───────────────┐
+        │               │               │
 ┌───────▼───────┐ ┌─────▼──────┐ ┌──────▼───────┐
 │   Commands    │ │  Loaders   │ │  Utilities   │
 │               │ │            │ │              │
@@ -49,8 +49,8 @@ CatenaD4J is designed as a modular, extensible dataset infrastructure with a Pyt
         │               │               │
         └───────────────┼───────────────┘
                         │
-        ┌───────────────▼───────────────┐
-        │                               │
+        ┌───────────────▼──────────────┐
+        │                              │
 ┌───────▼────────┐         ┌───────────▼──────────┐
 │  Defects4J     │         │   Java Toolkit       │
 │  Integration   │         │                      │
@@ -88,6 +88,26 @@ CatenaD4J/
 │   │   ├── __init__.py
 │   │   ├── manager.py          # CLI manager
 │   │   └── parser.py           # Argument parsers
+│   ├── toolkit/                    # Java source code
+│   │   ├── src/
+│   │   │   └── io/github/universetraveller/
+│   │   │       ├── ant/           # Custom Ant tasks
+│   │   │       ├── d4j/           # Defects4J tasks
+│   │   │       └── util/          # Java utilities
+│   │   ├── junit-agent/           # **EXPERIMENTAL** JUnit agent
+│   │   ├── compile.sh             # Toolkit build script
+│   │   └── target/
+│   │       └── toolkit.jar        # Compiled toolkit
+│   ├── projects/                   # Bug metadata and patches
+│   │   └── <Project>/
+│   │       ├── bugs-registry.csv  # Bug registry
+│   │       ├── <Project>.export.xml
+│   │       ├── <Project>.compile.xml
+│   │       └── patches/           # Bug-specific patches
+│   ├── resources/                  # Configuration resources
+│   │   ├── defects4j.libraries.xml
+│   │   ├── defects4j.properties.xml
+│   │   └── defects4j.properties
 │   ├── commands/               # Command implementations
 │   │   ├── __init__.py
 │   │   ├── checkout.py
@@ -100,27 +120,9 @@ CatenaD4J/
 │       ├── loader.py           # Base loader classes
 │       ├── project_loader.py   # Project loader base
 │       └── <Project>.py        # Per-project loaders
-├── toolkit/                    # Java source code
-│   ├── src/
-│   │   └── io/github/universetraveller/
-│   │       ├── ant/           # Custom Ant tasks
-│   │       ├── d4j/           # Defects4J tasks
-│   │       └── util/          # Java utilities
-│   ├── junit-agent/           # **EXPERIMENTAL** JUnit agent
-│   ├── compile.sh             # Toolkit build script
-│   └── target/
-│       └── toolkit.jar        # Compiled toolkit
-├── projects/                   # Bug metadata and patches
-│   └── <Project>/
-│       ├── bugs-registry.csv  # Bug registry
-│       ├── <Project>.export.xml
-│       ├── <Project>.compile.xml
-│       └── patches/           # Bug-specific patches
-├── resources/                  # Configuration resources
-│   └── defects4j.properties
 ├── setup.py                    # Python package installer
-├── setup_unix_user.py          # Unix setup script
-├── c4j                         # Startup script
+├── setup_unix_user.py          # Startup script generator
+├── c4j                         # Example startup script
 └── Dockerfile                  # Docker configuration
 ```
 
@@ -138,29 +140,30 @@ CatenaD4J/
 - Manage entry point
 - Provide startup context
 
-**Design Pattern**: Registry pattern with lazy initialization
-
 **Two-Level Design**:
 - `_bootstrap.py`: Low-level, immutable infrastructure
 - `bootstrap.py`: High-level, user-customizable initialization
 
-#### 2. Configuration System (`config.py`, `env.py`)
+#### 2. Configuration System (`config.py`, `env.py`, `user_setup.py`)
 
 **Purpose**: Centralized configuration and environment management.
 
 **Components**:
 - `config.py`: Static configuration values
 - `env.py`: Dynamic environment initialization
+- `user_setup.py`: User-customizable settings
 
 **Configuration Flow**:
 ```
-config.py → SystemConfig (read-only)
+env.py    → Custom env init → SystemEnv (read-only)
                 ↓
-         Custom env init → SystemEnv (read-only)
+config.py → SystemConfig (read-only)
                 ↓
          Merged → SystemContext (read-only)
                 ↓
          Copy → Context (modifiable)
+   
+user_setup.py → users do any thing they want after confuguration initialized and before entering the enrty point
 ```
 
 **Key Features**:
@@ -175,8 +178,8 @@ config.py → SystemConfig (read-only)
 **Architecture**:
 ```
 User Input → CLI Parser → Dispatcher → ExecutionContext → Command Entry
-                                            ↓
-                                    Result ← Command Logic
+                                                               ↓
+                                                 Result ← Command Logic
 ```
 
 **Command Registration**:
@@ -289,8 +292,6 @@ ProjectLoader (abstract)
 - Preserves stack traces and messages
 
 **Usage**: Not currently integrated into main toolkit
-
-**Future Work**: May be integrated for advanced fault localization
 
 ## Bootstrap Process
 
@@ -408,7 +409,7 @@ Return to Python
 
 **Example Java Command**:
 ```bash
-java -cp toolkit.jar:defects4j/major/lib/*:... \
+java -cp toolkit.jar:defects4j/major/lib/ant/*:... \
      -Dc4j.d4j.properties=/path/to/defects4j.properties \
      -Dbasedir=/work/dir \
      io.github.universetraveller.d4j.Defects4JExport \
@@ -452,7 +453,7 @@ get_entry('checkout') → checkout.run
 checkout.run(context)
    - Parse version ID
    - Get project loader
-   - Checkout via Defects4J
+   - Checkout Defects4J revision
    - Apply CatenaD4J patches
    - Create commits/tags
          ↓
@@ -514,7 +515,7 @@ Identify property type:
          ↓
 [CatenaD4J Property]
          ↓
-Read from projects/<Project>/patches/<bid>/<cid>/meta.json
+Read from projects/<Project>/patches/<bid>/<cid>.<property_name>
          ↓
 Return value
 
@@ -586,7 +587,12 @@ def initialize_commands():
     # ... existing commands ...
     from .commands import mycommand
     mycommand.initialize()
-    _register('mycommand', mycommand.run)
+    register('mycommand', mycommand.run)
+
+# catena4j/user_setup.py
+from .commands import mycommand
+mycommand.initialize()
+register('mycommand', mycommand.run)
 ```
 
 ### Adding Custom Loaders
@@ -614,6 +620,9 @@ class MyProjectLoader(ProjectLoader):
 def initialize_loaders():
     # ... existing loaders ...
     register_project_loader('MyProject')
+
+# catena4j/user_setup.py
+register_project_loader('MyProject')
 ```
 
 ### Adding Java Toolkit Components
@@ -635,7 +644,7 @@ public class MyTask extends Task {
 **2. Compile and Package**:
 ```bash
 cd toolkit
-bash compile.sh
+./gradlew clean build
 ```
 
 **3. Use in Build Files**:
@@ -687,46 +696,6 @@ bash compile.sh
 - Repeatedly export the same property without cache
 - Start multiple JVMs for single operations
 - Use full history when not needed
-
-## Architecture Decisions
-
-### Why Python + Java?
-
-**Python**:
-- Rapid development
-- Excellent scripting capabilities
-- Easy CLI creation
-- Rich ecosystem for data processing
-
-**Java**:
-- Defects4J compatibility (Ant-based)
-- Performance for computation-intensive tasks
-- JUnit integration
-- Existing build system infrastructure
-
-### Why Ant?
-
-- Defects4J uses Ant extensively
-- Mature build system with good Java support
-- Extensible via custom tasks
-- Compatible with existing project build files
-
-### Why Modular Design?
-
-- **Extensibility**: Users can add custom components
-- **Testability**: Components can be tested independently
-- **Maintainability**: Clear separation of concerns
-- **Reusability**: Components can be used in different contexts
-
-## Future Improvements
-
-### Planned Enhancements
-
-1. **Lightweight Test Runner**: Replace Ant-based testing with direct JUnit invocation
-2. **Fast Checkout**: Re-implement checkout without Defects4J dependency
-3. **Code Coverage Integration**: Add fast coverage tools
-4. **SBFL Integration**: Built-in spectrum-based fault localization
-5. **Complete D4J Replacement**: Remove Defects4J dependency entirely
 
 ### Experimental Features
 

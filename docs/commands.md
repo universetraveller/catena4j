@@ -2,7 +2,7 @@
 
 ## Overview
 
-Commands are the primary way users interact with CatenaD4J. This guide covers command implementation, registration, and extension.
+Commands are the primary way users interact with catena4j. This guide covers command implementation, registration, and extension.
 
 ## Command Architecture
 
@@ -53,7 +53,7 @@ Creates CLI parser with arguments:
 - `-p`: Project ID (required)
 - `-v`: Version ID in format `<bid><b/f><cid>` (required)
 - `-w`: Working directory path (required)
-- `--full-history`: Generate additional commit history
+- `--full-history`: Generate additional commit history (true by default in defects4j but false here)
 
 #### `run(context: ExecutionContext)`
 Main implementation:
@@ -156,7 +156,7 @@ Creates CLI parser with arguments:
 - `-t`: Specific test(s) to run (repeatable)
 - `-r`: Run relevant tests only
 - `--trigger`: Run trigger tests only
-- `-a`: Collect all failed assertions (experimental)
+- `-a`: Collect all failed assertions (experimental and working in progress)
 
 #### `run(context: ExecutionContext)`
 Main implementation:
@@ -178,16 +178,21 @@ Execute tests via Java toolkit:
   - Uses `JUnit4Helper`
   - Single classloader for all tests
   - Best for quick test runs
+  - Identical results compared with Defects4J on most tests
   
 - **Level 2**: Per-class isolated classloader
   - Uses `JUnit4Helper1`
   - New classloader for each test class
   - Better isolation, slight performance cost
+  - Avoid influence of test cases order which level 1 could not handle
+  - More identical results than level 1
   
 - **Level 3**: Ant's JUnit task (slowest, most isolated)
   - Uses standard Ant JUnit runner
   - Maximum isolation
   - Highest overhead
+  - It is the way Defects4J uses
+  - Identical results compared with Defects4J on all tests
 
 **Test Output**:
 - **List mode**: Writes all tests to `<work_dir>/all_tests`
@@ -393,7 +398,7 @@ def initialize_commands():
     
     # Add initialization
     mycommand.initialize()
-    _register('mycommand', mycommand.run)
+    register('mycommand', mycommand.run)
 ```
 
 #### 3. Use Command
@@ -436,9 +441,7 @@ def run(context):
 
 ✅ **Use Task Printers for Long Operations**:
 ```python
-with TaskPrinter("Long operation") as printer:
-    # Time-consuming work
-    result = long_operation()
+auto_task_print("Long operation", long_operation)
 # Automatically prints "DONE" or "FAILED"
 ```
 
@@ -458,17 +461,12 @@ def run(context):
 
 ✅ **Cache Expensive Operations**:
 ```python
-from ..util import get_cache_path, read_file, write_file
+from ..util import search_cache
 
 def run(context):
     cache_path = get_cache_path(context, 'mycommand', 'result')
     
-    cached = read_file(cache_path)
-    if cached:
-        return cached
-    
-    result = expensive_computation()
-    write_file(cache_path, result)
+    result = search_cache(cache_path, None, expensive_computation)
     return result
 ```
 
@@ -478,13 +476,13 @@ def run(context):
 ```python
 # Bad
 def run(context):
-    print("Processing...")  # Always prints
+    util.printc("Processing...\n")  # Always prints
     return result
 
 # Good
 def run(context):
     if context.mode == ExecutionContext.CLI:
-        print("Processing...")
+        util.printc("Processing...\n")
     return result
 ```
 
@@ -557,8 +555,8 @@ def db_operation(op, name):
     pass
 
 # Register both
-# bootstrap.py: _register('db-create', database.run_create)
-# bootstrap.py: _register('db-delete', database.run_delete)
+# bootstrap.py: register('db-create', database.run_create)
+# bootstrap.py: register('db-delete', database.run_delete)
 ```
 
 ### Progressive Enhancement
@@ -610,20 +608,16 @@ def run(context):
     args = context.args
     
     # Stage 1: Validation
-    with TaskPrinter("Validating input"):
-        validate_inputs(args)
+    auto_task_print("Validating input", validate_inputs, (args,))
     
     # Stage 2: Preparation
-    with TaskPrinter("Preparing environment"):
-        setup_environment(context)
+    auto_task_print("Preparing environment", setup_environment, (context,))
     
     # Stage 3: Processing
-    with TaskPrinter("Processing data"):
-        result = process_data(args)
+    result = auto_task_print("Processing data", process_data, (args,))
     
     # Stage 4: Cleanup
-    with TaskPrinter("Cleaning up"):
-        cleanup()
+    auto_task_print("Cleaning up", cleanup)
     
     return result
 ```

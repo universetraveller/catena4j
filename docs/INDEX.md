@@ -38,45 +38,6 @@ Welcome to the CatenaD4J documentation! This index provides an overview of all a
 - [Extending the Toolkit](toolkit/overview.md#extending-the-toolkit)
 - [Extension Points](API.md#extension-points)
 
-### For Researchers
-- [Dataset Structure](README.md#bug-structure)
-- [Bug Metadata](loaders.md#bug-registry)
-- [Property Access](utilities.md#property-access)
-- [Batch Processing Examples](utilities.md#example-2-batch-processing)
-
-## Documentation Statistics
-
-- **Total Files**: 12 markdown files
-- **Total Lines**: ~3,500 lines of documentation
-- **Coverage**: Python API, Java API, CLI, Commands, Loaders, Utilities, Toolkit
-- **Structure**: Flat files for single-component docs, subdirectory for multi-component toolkit
-
-## Documentation Features
-
-✅ **Comprehensive Coverage**
-- All major components documented
-- Python and Java APIs covered
-- Extensive code examples
-- Best practices and patterns
-
-✅ **User-Focused**
-- Clear installation instructions
-- Command reference with examples
-- Troubleshooting guides
-- Quick start guide
-
-✅ **Developer-Focused**
-- Extension points clearly marked
-- Custom component creation guides
-- Architecture diagrams and flows
-- API reference with type signatures
-
-✅ **Well-Organized**
-- Logical structure by component
-- Cross-references between docs
-- Table of contents in each file
-- Consistent formatting
-
 ## Contributing to Documentation
 
 When updating documentation:
@@ -89,17 +50,17 @@ When updating documentation:
 
 ## Getting Help
 
-- **Issues**: [GitHub Issues](https://github.com/universetraveller/CatenaD4J/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/universetraveller/CatenaD4J/discussions)
+- **Issues**: [GitHub Issues](https://github.com/universetraveller/catena4j/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/universetraveller/catena4j/discussions)
 - **Email**: Contact repository maintainers
 
 ## Version Information
 
-This documentation is for **CatenaD4J v2.0.0**.
+This documentation is for **catena4j v2.0.0**.
 
-For older versions, see version-specific branches or tags.
+For older versions, see [CatenaD4J](https://github.com/universetraveller/CatenaD4J).
 
 ## License
 
-Documentation is provided under the same license as CatenaD4J.
+Documentation is provided under the same license as catena4j.
 See [LICENSE](../LICENSE) for details.

@@ -11,6 +11,8 @@ CatenaD4J provides three utility modules:
 
 ### File I/O
 
+These APIs are expected to use for all I/O scenarios to get uniform behaviors across the system.
+
 #### Reading and Writing Files
 
 ```python
@@ -124,24 +126,22 @@ diff = svn.export_diff('r12345', 'r12346')
 Progress feedback for long-running operations.
 
 ```python
-from catena4j.util import TaskPrinter, get_auto_task_printer
+from catena4j.util import TaskPrinter, AutoTaskPrinter, get_auto_task_printer
 
 # Manual usage
-with TaskPrinter("Compiling project") as printer:
+with AutoTaskPrinter("Compiling project") as printer:
     compile_project()  # Long operation
 # Prints: "Compiling project.................... DONE"
 # Or:     "Compiling project.................... FAILED" (on exception)
 
 # Verbose mode
-with TaskPrinter("Building") as printer:
+with AutoTaskPrinter("Building") as printer:
     printer.verbose = True
     # Additional messages will be shown
 
 # Automatic mode (context-aware)
-printer = get_auto_task_printer(context)  # None if not in CLI mode
-if printer:
-    with printer("Processing"):
-        process()
+print_function = get_auto_task_printer(context)  # for CLI mode or API mode
+print_function("Processing", process)
 
 # Function wrapper
 from catena4j.util import auto_task_print
@@ -440,7 +440,7 @@ fill_properties(
 ```python
 from catena4j.d4jutil import fix_tests
 
-# Fix test formatting (Defects4J to JUnit format)
+# Fix test formatting
 fix_tests(
     project='Chart',
     bid='15',
@@ -496,7 +496,7 @@ if args.update_cache:
 ```python
 printer = None
 if context.mode == ExecutionContext.CLI:
-    printer = TaskPrinter("Task")
+    printer = AutoTaskPrinter("Task")
 
 if printer:
     with printer:

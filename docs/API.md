@@ -19,6 +19,8 @@
 
 CatenaD4J provides both Python and Java APIs for programmatic access to its functionality. The Python API is the primary interface for dataset operations, while the Java toolkit provides performance-critical operations through Ant tasks.
 
+The APIs in the following sections are not the complete list. Please see the source code for reference as needed.
+
 ## Python API
 
 ### Bootstrap System
@@ -27,24 +29,9 @@ The bootstrap system manages the initialization and startup of CatenaD4J.
 
 #### Module: `catena4j._bootstrap`
 
-Low-level system initialization APIs.
+Low-level system initialization APIs. Also the low-level implementation of the bootstrap machanism.
 
 **Functions**:
-
-##### `start()`
-```python
-def start() -> None
-```
-The main entry point of the program. Must be called after initialization functions are registered.
-
-**Raises**:
-- `BootstrapError`: If entry point or initialization order is not set
-
-**Example**:
-```python
-from catena4j._bootstrap import start
-start()
-```
 
 ##### `register_bootstrap_function(f: Callable)`
 ```python
@@ -62,7 +49,7 @@ Register a function to be called during system initialization.
 ```python
 def register_entry_point(f: Callable) -> None
 ```
-Register the main entry point of the program.
+Register the main entry point of the program. The registered entry point would be called after system initialization. Users can customize how the command works here. The default entry point is the command line entry point.
 
 **Parameters**:
 - `f`: Function to use as entry point
@@ -71,12 +58,12 @@ Register the main entry point of the program.
 ```python
 def register_initialization_order(f: Callable) -> None
 ```
-Register the initialization sequence function.
+Register the initialization sequence function. Users can customize the how does the system be initialized here.
 
 **Parameters**:
 - `f`: Function that defines initialization order; receives `StartupContext` as parameter
 
-**Classes**:
+**Internal**:
 
 ##### `StartupContext`
 ```python
@@ -90,9 +77,21 @@ from catena4j._bootstrap import StartupContext as system
 system.start  # Triggers initialization and runs entry point
 ```
 
+##### `start()`
+```python
+def start() -> None
+```
+
+This is the true entry point of the program. However, it is a reserved bootstrap function and should not be called directly. Instead, users are expected to call it using an instance of class StartupContext. 
+
+Must be called after initialization functions are registered.
+
+**Raises**:
+- `BootstrapError`: If entry point or initialization order is not set
+
 #### Module: `catena4j.bootstrap`
 
-High-level initialization methods.
+High-level initialization methods. Also a reference implementation of the bootstrap machanism.
 
 **Functions**:
 
@@ -100,51 +99,42 @@ High-level initialization methods.
 ```python
 def initialize_commands() -> None
 ```
-Register all built-in commands (export, checkout, test, compile, etc.).
+Register all built-in commands (export, checkout, test, compile, etc.). Users can add their own commands by modifying it directly. Users are expected to use function `register(...)` which contains safe checks.
 
 ##### `initialize_loaders()`
 ```python
 def initialize_loaders() -> None
 ```
-Register all project-specific loaders.
+Register all project-specific loaders. Users can add their own loaders by modifying it directly. Users are expected to use function `register_loader(...)` which contains safe checks.
 
 ##### `start_cli()`
 ```python
 def start_cli() -> None
 ```
-Default entry point that parses CLI arguments and dispatches commands.
+Default entry point implementation that parses CLI arguments and dispatches commands.
 
 ##### `initialize_system(system: StartupContext)`
 ```python
 def initialize_system(system: StartupContext) -> None
 ```
-Default initialization order for the system.
-
-**Example - Custom Initialization**:
-```python
-from catena4j.bootstrap import (
-    register_bootstrap_function,
-    initialize_system,
-    register_initialization_order,
-    system
-)
-
-def custom_initialization():
-    print('Custom setup')
-
-register_bootstrap_function(custom_initialization)
-
-def updated_order(sys):
-    initialize_system(sys)
-    sys.custom_initialization
-
-register_initialization_order(updated_order)
-system.start
-```
+Default initialization order for the system. Users can add new initialization tasks or change the initialization order by modifying it directly.
 
 ### Command Dispatcher
 
 #### Module: `catena4j.dispatcher`
+
+**Functions**:
+
+##### `dispatch(str, ExecutionContext)`
+```python
+def dispatch(target: str, context: ExecutionContext)
+```
+
+A function API to run specific command on a context.
+
+**Parameters**:
+- `target`: the command name to run
+- `context`: the execution context instance to run the command
 
 **Classes**:
 
@@ -159,14 +149,14 @@ class CommandDispatcher:
 Execute commands programmatically.
 
 **Parameters**:
-- `context`: System context (default: singleton instance)
+- `context`: Context object that contains environment and information (as attributes) to run commands (default: the system context)
 
 **Methods**:
 
 - `get_execution_context(args, cli)`: Create an execution context
   - `args`: Argument namespace
   - `cli`: Whether running in CLI mode
-  - Returns: `ExecutionContext`
+  - Returns: `ExecutionContext` instance
 
 - `run(target, args, cli)`: Execute a command
   - `target`: Command name
@@ -195,37 +185,19 @@ class ExecutionContext(Context):
     def run(self, target: str) -> Any
 ```
 
-Context for command execution.
+Context for command execution. ExecutionContext objects are expected to be created using CommandDispatcher objects.
 
 **Attributes**:
 - `args`: Command arguments
 - `mode`: Execution mode (CLI or API)
 - `dispatcher`: Parent dispatcher
-- Inherits all attributes from system context
+- Inherits all attributes from parent dispatcher's context
 
 ### Context Management
 
 #### Module: `catena4j.env`
 
 **Functions**:
-
-##### `initialize_config()`
-```python
-def initialize_config() -> None
-```
-Initialize the system configuration from `config.py`.
-
-##### `initialize_env()`
-```python
-def initialize_env() -> None
-```
-Initialize the system environment variables.
-
-##### `initialize_system_context()`
-```python
-def initialize_system_context() -> None
-```
-Create the merged system context from config and environment.
 
 ##### `get_system_config()`
 ```python
@@ -278,6 +250,26 @@ print(context.cli_program)
 context.custom_attr = 'value'
 ```
 
+**Internal**:
+
+##### `initialize_config()`
+```python
+def initialize_config() -> None
+```
+Initialize the system configuration from `config.py`.
+
+##### `initialize_env()`
+```python
+def initialize_env() -> None
+```
+Initialize the system environment variables.
+
+##### `initialize_system_context()`
+```python
+def initialize_system_context() -> None
+```
+Create the merged system context from config and environment.
+
 ### Loaders
 
 #### Module: `catena4j.loaders`
@@ -288,7 +280,7 @@ context.custom_attr = 'value'
 ```python
 def register_loader(name: str, loader: Loader) -> None
 ```
-Register a loader class.
+Register a loader class. Used by all common users.
 
 **Parameters**:
 - `name`: Loader identifier
@@ -301,7 +293,7 @@ Register a loader class.
 ```python
 def register_loader_lazy(name: str, package: str, clazz: str, level: int) -> None
 ```
-Register a loader with lazy import (performance optimization).
+Register a loader with lazy import (performance optimization). It is used only when users know how it works.
 
 **Parameters**:
 - `name`: Loader identifier
@@ -429,7 +421,7 @@ register_loader('MyProject', MyProjectLoader)
 ```python
 def read_file(file: Path, encoding: str = None) -> str | None
 ```
-Read file with automatic encoding detection.
+Read file with automatic encoding detection. It should be the only way to read a file in this system for uniform behaviors.
 
 **Parameters**:
 - `file`: Path to file
@@ -441,7 +433,7 @@ Read file with automatic encoding detection.
 ```python
 def write_file(file: Path, content: str, encoding: str = None) -> None
 ```
-Write file with automatic encoding handling. Creates parent directories if needed.
+Write file with automatic encoding handling. Creates parent directories if needed. It should be the only way to write a file in this system for uniform behaviors.
 
 **Parameters**:
 - `file`: Path to file
@@ -505,46 +497,16 @@ Write Java properties file.
 **Task Printer**:
 
 ##### `TaskPrinter`
-```python
-class TaskPrinter:
-    def __init__(self, message: str)
-    def __enter__(self) -> TaskPrinter
-    def __exit__(self, exc_type, exc_val, exc_tb) -> bool
-    
-    @staticmethod
-    def configurate(start: str, done: str, fail: str, anchor: int, padding: str)
-```
 
-Context manager for printing task progress with status indicators.
+Class for printing task progress with status indicators.
 
-**Example**:
-```python
-from catena4j.util import TaskPrinter
+#### `auto_task_print(...)`
 
-with TaskPrinter("Compiling project") as printer:
-    # Long-running task
-    compile_project()
-# Prints: "Compiling project.................... DONE" or "FAILED"
-```
+Function to automatically create and manage the task printer objects.
 
 **VCS Classes**:
 
-##### `Git`
-```python
-class Git:
-    def __init__(self, loader: ProjectLoader)
-    def checkout_revision(self, revision_id: str, wd: str) -> subprocess.CompletedProcess
-    def export_diff(self, a: str, b: str, output: Path = None) -> str
-    @staticmethod
-    def format_name(name: str) -> str
-```
-
-Git version control operations.
-
-**Methods**:
-- `checkout_revision(revision_id, wd)`: Check out a specific commit
-- `export_diff(a, b, output)`: Generate diff between commits
-- `format_name(name)`: Format repository name (appends `.git`)
+Classes that implement version control behaviors. Currently Git and Svn are included.
 
 #### Module: `catena4j.c4jutil`
 
@@ -801,10 +763,8 @@ def my_command(context):
     # Command logic here
     return result
 
-def initialize_my_commands():
-    register('mycommand', my_command)
-
-register_bootstrap_function(initialize_my_commands)
+# user_setup.py
+register('mycommand', my_command)
 ```
 
 ### Custom Loaders
@@ -829,11 +789,8 @@ class CustomProjectLoader(ProjectLoader):
         # Project-specific logic
         return False
 
-def initialize_custom_loaders():
-    register_loader('CustomProject', CustomProjectLoader)
-
-from catena4j.bootstrap import register_bootstrap_function
-register_bootstrap_function(initialize_custom_loaders)
+# user_setup.py
+register_loader('CustomProject', CustomProjectLoader)
 ```
 
 ### Environment Customization
@@ -871,6 +828,10 @@ checkout_args = Namespace(
 )
 dispatcher.run('checkout', checkout_args)
 
+# or use command API directly
+from catena4j.commands import checkout
+checkout.load_version(...)
+
 # Compile it
 compile_args = Namespace(
     w='./workspace/chart_15b1',
@@ -878,6 +839,10 @@ compile_args = Namespace(
     verbose=False
 )
 dispatcher.run('compile', compile_args)
+
+# or use command API directly
+from catena4j.commands import compile
+compile.execute_compile(...)
 
 # Run tests
 test_args = Namespace(
@@ -892,6 +857,10 @@ test_args = Namespace(
 )
 result = dispatcher.run('test', test_args)
 print(f"Test result: {result}")
+
+# or use command API directly
+from catena4j.commands import test
+test.run(...)
 ```
 
 ### Example 2: Query Dataset Information

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Loaders are responsible for project-specific operations in CatenaD4J. Each project can have its own loader to handle unique requirements such as different directory layouts, VCS systems, and post-checkout modifications.
+Loaders are responsible for project-specific operations in catena4j. Each project can have its own loader to handle unique requirements such as different directory layouts, VCS systems, and post-checkout modifications.
 
 ## Loader Architecture
 
@@ -77,34 +77,28 @@ class MyProjectLoader(ProjectLoader):
 #### `version_control_system`
 ```python
 @property
-def version_control_system(self):
-    return self._version_control_system
+def version_control_system(self)
 ```
 Lazily-initialized VCS instance for this loader.
 
 #### `src_layout`
 ```python
 @property
-def src_layout(self):
-    return self._layout['src']
+def src_layout(self)
 ```
 Source directory layout (computed from `determine_layout()`).
 
 #### `test_layout`
 ```python
 @property
-def test_layout(self):
-    return self._layout['test']
+def test_layout(self)
 ```
 Test directory layout (computed from `determine_layout()`).
 
 #### `repo_path`
 ```python
 @property
-def repo_path(self):
-    return Path(self.context.d4j_home,
-                self.context.d4j_rel_repositories,
-                self.rel_to_repo)
+def repo_path(self)
 ```
 Path to VCS repository.
 
@@ -189,42 +183,27 @@ def get_property(self, name: str, project: str, bid: str, cid: str) -> str:
 
 #### `load_buggy_version(project, bid, cid, wd)`
 ```python
-def load_buggy_version(self, project: str, bid: str, cid: str, wd: str) -> None:
+def load_buggy_version(self, project: str, bid: str, cid: str, wd: str) -> None
     """
     Apply patches for buggy version.
     
     Reads test patches from metadata and applies them.
     """
-    files = Files(wd)
-    test_patch = json.loads(self.get_property('test.patch', project, bid, cid))
-    for hunk in test_patch:
-        apply_json_patch(test_patch[hunk], files)
 ```
 
 #### `load_fixed_version(project, bid, cid, wd)`
 ```python
-def load_fixed_version(self, project: str, bid: str, cid: str, wd: str) -> None:
+def load_fixed_version(self, project: str, bid: str, cid: str, wd: str) -> None
     """
     Apply patches for fixed version.
     
     Reads test and source patches from metadata and applies them.
     """
-    files = Files(wd)
-    
-    # Apply test patches
-    test_patch = json.loads(self.get_property('test.patch', project, bid, cid))
-    for hunk in test_patch:
-        apply_json_patch(test_patch[hunk], files)
-    
-    # Apply source patches
-    src_patch = json.loads(self.get_property('src.patch', project, bid, cid))
-    for hunk in src_patch:
-        apply_json_patch(src_patch[hunk], files)
 ```
 
 #### `toolkit_execute(target, project, wd, **kwargs)`
 ```python
-def toolkit_execute(self, target: Any, project: str, wd: str, **kwargs) -> str:
+def toolkit_execute(self, target: Any, project: str, wd: str, **kwargs) -> str
     """
     Execute Java toolkit operations.
     
@@ -237,113 +216,13 @@ def toolkit_execute(self, target: Any, project: str, wd: str, **kwargs) -> str:
     Returns:
         str: Toolkit output
     """
-    return toolkit_execute(target, project, wd, context=self.context, **kwargs)
 ```
 
 ## Built-in Loaders
 
-### Chart (JFreeChart)
+**Module**: `catena4j/loaders/*.py`
 
-**Module**: `catena4j/loaders/Chart.py`
-
-```python
-class ChartLoader(ProjectLoader):
-    version_control_system_class = Svn
-    project_name = 'jfreechart'
-    
-    def determine_layout(self):
-        return {
-            'src': 'source',
-            'test': 'tests'
-        }
-    
-    def d4j_checkout_hook(self, project, revision_id, wd):
-        return fix_compilation_errors(self.context, project, revision_id, wd)
-```
-
-**Characteristics**:
-- VCS: Subversion (SVN)
-- Repository: jfreechart
-- Source directory: `source`
-- Test directory: `tests`
-- Post-checkout: Fixes compilation errors for certain revisions
-
-### Math (Apache Commons Math)
-
-**Module**: `catena4j/loaders/Math.py`
-
-```python
-class MathLoader(ProjectLoader):
-    version_control_system_class = Git
-    project_name = 'commons-math'
-    
-    def determine_layout(self):
-        return {
-            'src': [
-                'src/main/java',
-                'src/java'
-            ],
-            'test': [
-                'src/test/java',
-                'src/test'
-            ]
-        }
-```
-
-**Characteristics**:
-- VCS: Git
-- Repository: commons-math
-- Multiple source layouts (handles both Maven and old structure)
-- Multiple test layouts
-- No special post-checkout hooks
-
-### Lang (Apache Commons Lang)
-
-**Module**: `catena4j/loaders/Lang.py`
-
-```python
-class LangLoader(ProjectLoader):
-    version_control_system_class = Git
-    project_name = 'commons-lang'
-    
-    def determine_layout(self):
-        return {
-            'src': 'src/main/java',
-            'test': 'src/test/java'
-        }
-```
-
-**Characteristics**:
-- VCS: Git
-- Repository: commons-lang
-- Standard Maven layout
-- Single source/test directory
-
-### Closure (Closure Compiler)
-
-**Module**: `catena4j/loaders/Closure.py`
-
-```python
-class ClosureLoader(ProjectLoader):
-    version_control_system_class = Git
-    project_name = 'closure-compiler'
-    
-    def determine_layout(self):
-        return {
-            'src': ['src', 'gen'],
-            'test': 'test'
-        }
-    
-    def d4j_checkout_hook(self, project, revision_id, wd):
-        # Custom build file handling
-        return fix_missing_build_file(self.context, project, revision_id, wd)[2]
-```
-
-**Characteristics**:
-- VCS: Git
-- Repository: closure-compiler
-- Multiple source directories (src + generated)
-- Post-checkout: Handles missing build files
+There are some implemented loaders for current projects. Refer to their source code for more information.
 
 ## Creating Custom Loaders
 
@@ -421,19 +300,8 @@ class MyProjectLoader(ProjectLoader):
 Edit `catena4j/bootstrap.py`:
 
 ```python
-def initialize_loaders():
-    from .loaders import register_loader_lazy
-    
-    def register_project_loader(proj: str):
-        register_loader_lazy(proj, proj, f'{proj}Loader', 1)
-    
-    # Existing projects
-    register_project_loader('Chart')
-    register_project_loader('Math')
-    # ... more projects ...
-    
-    # Add your project
-    register_project_loader('MyProject')
+from catena4j.loaders import register_loader, MyProjectLoader
+register_loader('MyProject', MyProjectLoader)
 ```
 
 #### 3. Add Project Metadata
@@ -456,7 +324,7 @@ MyProject,1,1,MyProject
 MyProject,1,2,MyProject
 ```
 
-Format: `<project>,<bid>,<cid>,<loader_name>`
+Format: `<project>,<bid>,<cid>,<loader_name (deprecated)>`
 
 #### 4. Use Loader
 
@@ -776,35 +644,6 @@ rm -rf $WORKDIR
 ❌ **Don't forget to call super().__init__()** in custom `__init__`
 ❌ **Don't apply global modifications** - keep changes scoped to working directory
 ❌ **Don't assume version information available** in `determine_layout()`
-
-## Troubleshooting
-
-### Issue: Loader Not Found
-
-**Symptom**: `LoaderError: No loader found for project MyProject`
-
-**Solutions**:
-1. Ensure loader is registered in `bootstrap.initialize_loaders()`
-2. Check loader class name matches registration
-3. Verify module name is correct for lazy registration
-
-### Issue: Wrong Directories Used
-
-**Symptom**: Build fails because source files not found
-
-**Solutions**:
-1. Check `determine_layout()` returns correct paths
-2. Verify paths exist in checked-out working directory
-3. Return list of possible paths if layout varies
-
-### Issue: Post-Checkout Hook Not Running
-
-**Symptom**: Expected modifications not applied
-
-**Solutions**:
-1. Ensure `d4j_checkout_hook()` is implemented
-2. Check return value (True if modified, False otherwise)
-3. Verify hook is called in checkout command flow
 
 ## See Also
 

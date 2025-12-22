@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Java toolkit provides performance-critical operations for CatenaD4J through custom Ant tasks and utilities. It bridges the gap between Python's ease of use and Java's integration with existing build systems.
+The Java toolkit provides performance-critical operations for catena4j through custom Ant tasks and utilities. It bridges the gap between Python's ease of use and Java's integration with existing build systems.
 
 ## Architecture
 
@@ -31,7 +31,7 @@ Toolkit (toolkit.jar)
 
 ```bash
 cd toolkit
-bash compile.sh
+./gradlew clean build
 ```
 
 This script:
@@ -48,7 +48,11 @@ cd toolkit
 mkdir -p target
 
 # Compile
-javac -cp /path/to/defects4j/major/lib/* \
+javac -cp /path/to/defects4j/major/lib/ant/* \
+      # add tools.jar to the classpath for jdk 8
+      # or add modules for jdk 9+
+      # --add-exports=jdk.compiler/com.sun.source.tree=ALL-UNNAMED
+      # --add-exports=jdk.compiler/com.sun.source.util=ALL-UNNAMED
       -sourcepath ./src \
       -d ./target \
       src/io/github/universetraveller/**/*.java
@@ -214,7 +218,7 @@ public class MyCustomTask extends Task {
 2. **Compile and Package**:
 ```bash
 cd toolkit
-bash compile.sh
+./gradlew clean build
 ```
 
 3. **Use in Build Files**:
@@ -273,45 +277,6 @@ result = toolkit_execute(
     main_attr='my_custom_main',  # Configure in config.py
     context=context
 )
-```
-
-## Troubleshooting
-
-### Compilation Errors
-
-**Issue**: `javac: command not found`
-
-**Solution**: Ensure JDK 8 is installed and in PATH:
-```bash
-java -version  # Should show 1.8.x
-javac -version  # Should show 1.8.x
-```
-
-### ClassNotFoundException
-
-**Issue**: `java.lang.ClassNotFoundException: ...`
-
-**Solution**: Check classpath includes:
-- `toolkit.jar`
-- Defects4J Ant libraries
-- All necessary dependencies
-
-### Ant Task Not Found
-
-**Issue**: `Could not create task or type of type: mytask`
-
-**Solution**: 
-1. Ensure task is compiled into `toolkit.jar`
-2. Check `taskdef` uses correct classname
-3. Verify classpath includes `toolkit.jar`
-
-### OutOfMemoryError
-
-**Issue**: `java.lang.OutOfMemoryError: Java heap space`
-
-**Solution**: Increase heap size:
-```python
-toolkit_execute(..., java_options=['-Xmx2g'])
 ```
 
 ## Best Practices

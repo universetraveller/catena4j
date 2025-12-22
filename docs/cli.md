@@ -2,7 +2,7 @@
 
 ## Overview
 
-The CLI (Command-Line Interface) components provide the user-facing interface for CatenaD4J. This guide covers the internal implementation of CLI parsing, argument handling, and command dispatch.
+The CLI (Command-Line Interface) components provide the user-facing interface for catena4j. This guide covers the internal implementation of CLI parsing, argument handling, and command dispatch.
 
 ## Module Structure
 
@@ -182,15 +182,9 @@ Initialize the root CLI parser.
 
 **Called by**: `_bootstrap.initialize_cli()`
 
-##### `_init_subcommands(title, dest, required)`
+##### `init_subcommands(title, dest, required)`
 ```python
-def _init_subcommands(title='Commands', dest='command', required=True):
-    global _subparsers
-    _subparsers = _root_parser.add_subparsers(
-        title=title,
-        dest=dest,
-        required=required
-    )
+def init_subcommands(title='Commands', dest='command', required=True)
 ```
 
 Initialize subparser infrastructure for commands.
@@ -200,12 +194,9 @@ Initialize subparser infrastructure for commands.
 - `dest`: Attribute name for selected command
 - `required`: Whether a command must be specified
 
-**Called by**: `_bootstrap.initialize_cli()`
-
-##### `_create_command(name, **kwargs)`
+##### `create_command(name, **kwargs)`
 ```python
-def _create_command(name, **kwargs):
-    return _subparsers.add_parser(name, parser_class=LeafArgumentParser, **kwargs)
+def create_command(name, **kwargs)
 ```
 
 Create a new command parser.
@@ -222,9 +213,11 @@ Create a new command parser.
 
 **Usage**:
 ```python
-from catena4j.cli.manager import _create_command
+from catena4j.cli.manager import init_root_parser, init_subcommands, create_command
 
-parser = _create_command('mycommand', 
+_ = init_root_parser()
+_ = init_subcommands()
+parser = create_command('mycommand', 
                          help='My custom command',
                          add_help=False)
 parser.add_argument('-p', required=True)
@@ -241,7 +234,7 @@ parser.__add_arguments_help__ = True
    init_root_parser(name=config.cli_program,
                     usage=config.cli_usage,
                     description=config.cli_description)
-   _init_subcommands(title='Commands',
+   init_subcommands(title='Commands',
                      dest=config.cli_command_dest,
                      required=True)
    ```
@@ -251,16 +244,12 @@ parser.__add_arguments_help__ = True
    # For each command:
    from .commands import checkout
    checkout.initialize()  # Creates parser
-   _register('checkout', checkout.run)  # Registers entry
+   register('checkout', checkout.run)  # Registers entry
    ```
 
 3. **Argument Parsing** (`bootstrap.start_cli()`):
    ```python
-   args = cli_manager._root_parser.parse_args()
-   dest = env._config.cli_command_dest
-   target = getattr(args, dest)
-   delattr(args, dest)
-   # Execute command...
+   args = cli_manager.parse_args()
    ```
 
 ### Example: Adding a Command
@@ -269,14 +258,14 @@ parser.__add_arguments_help__ = True
 
 ```python
 # catena4j/commands/mycommand.py
-from ..cli.manager import _create_command
+from ..cli.manager import create_command
 from ..dispatcher import ExecutionContext
 
 _parser = None
 
 def initialize():
     global _parser
-    _parser = _create_command('mycommand',
+    _parser = create_command('mycommand',
                               help='My custom command',
                               description='Detailed description',
                               add_help=False)
@@ -293,14 +282,18 @@ def run(context: ExecutionContext):
     return result
 ```
 
-**Step 2: Register in Bootstrap**
+**Step 2: Register in Bootstrap or User setup module**
 
 ```python
 # catena4j/bootstrap.py
 def initialize_commands():
     from .commands import mycommand
     mycommand.initialize()
-    _register('mycommand', mycommand.run)
+    register('mycommand', mycommand.run)
+
+# catena4j/user_setup.py
+from .commands import register, mycommand
+register('mycommand', mycommand.run)
 ```
 
 **Step 3: Use Command**
@@ -453,7 +446,7 @@ cli_command_dest = '\0command'     # Internal attribute name
 
 ### DO
 
-✅ Use `_create_command()` for consistency
+✅ Use `create_command()` for consistency
 ✅ Set `__add_arguments_help__` appropriately
 ✅ Provide clear help text for all arguments
 ✅ Use `add_help=False` and implement help manually if needed
@@ -542,32 +535,6 @@ def initialize():
     
     _parser.__add_arguments_help__ = True
 ```
-
-## Troubleshooting
-
-### Issue: Arguments Not Recognized
-
-**Symptom**: `error: unrecognized arguments: -x`
-
-**Solution**: Ensure argument is added in `initialize()` function and that `initialize()` is called during bootstrap.
-
-### Issue: Help Not Showing Arguments
-
-**Symptom**: `catena4j command -h` doesn't show argument details
-
-**Solution**: Set `parser.__add_arguments_help__ = True`
-
-### Issue: Conflicting Arguments
-
-**Symptom**: Two arguments seem to interfere with each other
-
-**Solution**: Use mutually exclusive groups or check for conflicts in command logic
-
-### Issue: Command Not Found
-
-**Symptom**: `error: invalid choice: 'mycommand'`
-
-**Solution**: Ensure command is registered in `bootstrap.initialize_commands()`
 
 ## See Also
 
