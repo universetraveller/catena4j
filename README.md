@@ -585,16 +585,16 @@ In future work, it may be possible to eliminate the need to install Defects4J en
 ### Getting Help
 
 - **Issues**: Report bugs at [GitHub Issues](https://github.com/universetraveller/catena4j/issues)
-- **Documentation**: See [ARCHITECTURE.md](ARCHITECTURE.md) for system design
-- **API Reference**: See [API.md](API.md) for programmatic usage
+- **Documentation**: See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for system design
+- **API Reference**: See [API.md](docs/API.md) for programmatic usage
 - **Defects4J Documentation**: [Defects4J Repository](https://github.com/rjust/defects4j)
 
 ## Next Steps
 
-- **Understand the Architecture**: Read [ARCHITECTURE.md](ARCHITECTURE.md)
-- **API Programming**: See [API.md](API.md) for using catena4j as a library
-- **Extend CatenaD4J**: Learn about loaders and commands in the component guides
-- **Reproduce Experiments**: Follow instructions in `scripts/README.md`
+- **Understand the Architecture**: Read [ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- **API Programming**: See [API.md](docs/API.md) for using catena4j as a library
+- **Extend the Dataset**: Learn about loaders and commands in the component guides
+- **Reproduce Experiments**: Follow instructions in the old repository [CatenaD4J](https://github.com/universetraveller/CatenaD4J)
 
 ## References
 

@@ -707,6 +707,6 @@ cd toolkit
 
 ## See Also
 
-- [User Guide](README.md) - Installation and usage
+- [User Guide](../README.md) - Installation and usage
 - [API Reference](API.md) - Programmatic interface
 - [Component Guides](commands.md) - Detailed component docs

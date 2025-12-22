@@ -961,6 +961,6 @@ print(f"Test layout: {test_layout}")
 
 ## See Also
 
-- [User Guide](README.md) - Command-line usage
+- [User Guide](../README.md) - Command-line usage
 - [Architecture](ARCHITECTURE.md) - System design
 - [Component Guides](loaders.md) - Detailed component documentation

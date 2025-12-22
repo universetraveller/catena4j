@@ -5,8 +5,8 @@ Welcome to the CatenaD4J documentation! This index provides an overview of all a
 ## Documentation Organization
 
 ### Getting Started
-- **[User Guide](README.md)** - Installation, commands, and usage examples
-- **[Quick Start](README.md#quick-start)** - Get up and running quickly
+- **[User Guide](../README.md)** - Installation, commands, and usage examples
+- **[Quick Start](../README.md#quick-start)** - Get up and running quickly
 
 ### Core Documentation
 - **[API Reference](API.md)** - Complete Python and Java API documentation
@@ -26,11 +26,11 @@ Welcome to the CatenaD4J documentation! This index provides an overview of all a
 ## Quick Links
 
 ### For Users
-- [Installation Guide](README.md#installation)
-- [Available Commands](README.md#available-commands)
-- [Command Reference](README.md#command-reference)
-- [Examples](README.md#examples)
-- [Troubleshooting](README.md#troubleshooting)
+- [Installation Guide](../README.md#installation)
+- [Available Commands](../README.md#available-commands)
+- [Command Reference](../README.md#command-reference)
+- [Examples](../README.md#examples)
+- [Troubleshooting](../README.md#troubleshooting)
 
 ### For Developers
 - [Creating Custom Commands](commands.md#creating-custom-commands)
