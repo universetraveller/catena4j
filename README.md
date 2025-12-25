@@ -1,22 +1,22 @@
-# catena4j v2.0.1
+# catena4j v2.1.0
 
 ## Introduction
 
-Catena4j is a high-performance Python implementation of Defects4J and CatenaD4J with a native API.
+Catena4J is a high-performance Python implementation of Defects4J and CatenaD4J with a native API.
 
 It reimplemented most defects4j commands using Python and Java for better performance, while providing API for programming access to the dataset.
 
-CatenaD4J (c4j) is a dataset for evaluating automated program repair techniques on indivisible multi-hunk bugs. A "catena bug" consists of multiple interdependent code hunks that must all be fixed together to resolve the bug.
+[CatenaD4J](https://github.com/universetraveller/CatenaD4J) (c4j) is a dataset for evaluating automated program repair techniques on indivisible multi-hunk bugs. A "catena bug" consists of multiple interdependent code hunks that must all be fixed together to resolve the bug.
 
-This module contains bugs from both Defects4j and CatenaD4J.
+Catena4J contains bugs from both Defects4J and CatenaD4J.
 
 > [!NOTE]
-> The defects4j version currently implemented is v2.1.0 and plan to upgrade to v3.0.0 in next version. In this case, the JDK requirement will also change to JDK 11 (current JDK 8).
+> The defects4j version currently implemented is v2.1.0 and plan to upgrade to v3.0.1 in next version. In this case, the JDK requirement will also change to JDK 11 (current JDK 8).
 
 ### Key Features
-- **367 bugs** across 6 projects from Defects4J
-- **Minimal, isolated bugs** with single-assertion failing tests
-- **Indivisible multi-hunk** structure requiring coordinated fixes
+- **1500+ supported bugs** across 17 projects including all Defects4J and CatenaD4J bugs
+- **426 indivisible multi-hunk bugs** requiring coordinated fixes with minimized tests
+- **High performance** python implementation of Defects4J with a native API
 - **Compatible with Defects4J** by implementing most defects4j commands
 - **Extensible architecture** supporting custom commands and loaders
 
@@ -27,10 +27,10 @@ Each bug in CatenaD4J has:
 - Minimal failing tests with single assertions
 - Multiple interdependent code hunks
 
-Bugs are referenced using the format: `<bug_id><b/f><cid>`
+Bugs are referenced using the format: `<bug_id><b/f>[<cid>]`
 - `bug_id`: Original Defects4J bug number
 - `b/f`: Buggy or fixed version
-- `cid`: CatenaD4J catena identifier
+- `cid`: Optional catena identifier for bugs in CatenaD4J
 
 ## Table of Contents
 - [Introduction](#introduction)
@@ -55,16 +55,16 @@ The easiest way to install this repository is using the python package manager s
 
 This operation will install this repository as a python library while providing a console script `catena4j`.
 
-From source:
-
-```bash
-pip install .
-```
-
-or from the built package:
+From the built package:
 
 ```bash
 pip install catena4j
+```
+
+or from source:
+
+```bash
+pip install .
 ```
 
 Test the installation:
