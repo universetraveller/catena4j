@@ -11,10 +11,10 @@ It reimplemented most defects4j commands using Python and Java for better perfor
 Catena4J contains bugs from both Defects4J and CatenaD4J.
 
 > [!NOTE]
-> The defects4j version currently implemented is v2.1.0 and plan to upgrade to v3.0.1 in next version. In this case, the JDK requirement will also change to JDK 11 (current JDK 8).
+> The defects4j version currently implemented is v2.1.0 and plan to upgrade to v3.0.1 in next version. In this case, the JDK requirement will also change to JDK 11 (it requires JDK 8 currently).
 
 ### Key Features
-- **1500+ supported bugs** across 17 projects including all Defects4J and CatenaD4J bugs
+- **1500+ total supported bugs** including all Defects4J and CatenaD4J bugs
 - **426 indivisible multi-hunk bugs** requiring coordinated fixes with minimized tests
 - **High performance** python implementation of Defects4J with a native API
 - **Compatible with Defects4J** by implementing most defects4j commands
